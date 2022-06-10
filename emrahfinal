@@ -274,4 +274,149 @@ anova(lm(weight~group, data = mydata))
 df = data.frame(Exam, Sex, Degree)
 
 
+#iki yönlü anova
+anova(lm(Exam~Degree*Sex, data = df))
+
+#kutu grafiği
+boxplot(Exam~Degree+Sex, data = df, ylab = "Exam Scores", names = c("F Art", "F Joint", "F Sci", "M Art", "M Joint", "M Sci"))
+
+
+#tapply her hücreye uygula
+chick.means = tapply(chickwts$weight, INDEX = chickwts$feed, FUN = mean)
+boxplot(chickwts$weight~chickwts$feed)
+#1 den 6ya kadar değişkne kullanarak şekil verir
+points(1:6, chick.means, pch = 4, cex = 1.5)
+
+
+chick.sd = tapply(chickwts$weight, INDEX = chickwts$feed, FUN = sd)
+chick.meancen = chickwts$weight - chick.means[as.numeric(chickwts$feed)]
+
+
+deneme1 = chickwts$feed
+
+deneme2 = as.numeric(chickwts$feed)
+
+deneme3 = chick.means[as.numeric(chickwts$feed)]
+
+chick.meancen = chickwts$weight - chick.means[as.numeric(chickwts$feed)]
+
+#Neden hataları hesapladık? 
+#Çünkü hataların normal dağılıp dağılmadığını gözlemlemek istiyoruz. Bunun için “qqplot” çizdireceğiz. Bunu çizdirebilmek için,
+
+qqnorm(chick.meancen, main = "Normal QQ plot of residuals")
+
+qqline(chick.meancen) #qqline doğrusunu çizebilmek için
+
+
+chick.anova = aov(weight~feed, data = chickwts) #tek yönlü varyans analizi
+
+#H0: Tavuk ağırlıklarının ortalamalarının eşit olduğu
+#H1: Tavuk ağırlıklarının ortalamaları arasında en az bir tanesinin diğerlerinden farklı olduğu
+
+tapply(warpbreaks$breaks, INDEX = list(warpbreaks$wool, warpbreaks$tension), FUN = mean)
+
+wb.mean = aggregate(warpbreaks$breaks, by = list(warpbreaks$wool, warpbreaks$tension), FUN = mean)
+
+summary(aov(breaks~wool + tension, data = warpbreaks))
+#iki grup olduğunda two way anova yapılır 
+summary(aov(breaks~wool + tension + wool:tension, data = warpbreaks))
+
+interaction.plot(x.factor = wb.mean[,2], trace.factor = wb.mean[,1],
+response = wb.mean$x,
+trace.label = "wool",
+xlab = "tension",
+ylab = "mean wrap breaks")
+
+library(MASS)
+survey
+
+
+age.means = tapply(survey$Age, survey$Smoke, mean)
+age.means
+age.meancen = survey$Age - age.means[as.numeric(survey$Smoke)] #ortalanmış ortalama
+
+
+qqnorm(age.meancen, main = "Normal QQ plot of residuals")
+qqline(age.meancen)
+
+#normallik yok anova yapılmaz 
+kruskal.test(Age~Smoke, data = survey)
+
+
+plot(survey$Height~survey$Wr.Hnd, xlab = "Writing Handspan (cm)", ylab = "Height (cm)")
+cor(survey$Wr.Hnd, survey$Height, use = "complete.obs") #x ile y arasındaki korelasyon
+
+incomplete.obs = which(is.na(survey$Height)|is.na(survey$Wr.Hnd)) 
+
+length(incomplete.obs)
+
+survfit = lm(Height~Wr.Hnd, data = survey)
+
+abline(survfit, lwd = 2) #y doğrusu çizer
+
+obsA = c(survey$Wr.Hnd[197], survey$Height[197])
+
+obsB = c(survey$Wr.Hnd[154], survey$Height[154])
+
+names(survfit)
+
+mycoef = coef(survfit) #katsayıları çıkartalım
+mycoef
+beta0 = mycoef[1] #sabit terim
+beta1 = mycoef[2]
+
+segments(x0 = c(obsA[1], obsB[1]), y0 = beta0 + beta1*c(obsA[1], obsB[1]), x1 = c(obsA[1], obsB[1]), y1 = c(obsA[2], obsB[2]), lty = 2)
+
+summary(survfit)  
+#Bu iki tane bağımsız değişken olduğundan basit regresyondur. Haliyle r-kareyi yorumlayabiliriz: 
+#Kişini baş parmağı ile serçe parmağı arasındaki uzunluğu kullanarak kişinin boy uzunluğundaki değişimi açıklamak istiyorsam,  
+#toplam değişimin ancak %36’sını açıklayabilirim.
+
+#%95 güven aralığı ile sabit (intercept) için en düşük 103.225 ve en yüksek 124.68 olabiliyor.
+#%95 güven aralığı ile eğim katsayısı (Wr.Hnd) için en düşük 2.547 ve en yüksek 3.685961 olabiliyor.
+
+rh = cor(survey$Height, survey$Wr.Hnd, use = "complete.obs")
+rh
+rkare = rh^2
+rkare
+
+#Modelin hatalarının standart sapması ise,
+summary(survfit)$sigma #standart hata
+
+
+
+#y şapka = sabit terim + eğim katsayısı * (14.5)
+as.numeric(beta0 + beta1*14.5)
+as.numeric(beta0 + beta1*24)
+
+
+xval = data.frame(Wr.Hnd = c(14.5, 24))
+mypred = predict(survfit, newdata = xval, interval = "confidence", level = 0.95)
+mypred
+
+
+shapiro.test(PlantGrowth$weight)
+
+data:  PlantGrowth$weight
+mydata = PlantGrowth
+boxplot(weight~group, data = mydata, ylab = "Weight", names = c("ctrl", "trt1", "trt2"))
+
+mydata1 = subset(mydata, group == c("ctrl", "trt1"))
+mydata2 = subset(mydata, group == c("ctrl", "trt2"))
+mydata3 = subset(mydata, group == c("trt1", "trt2"))
+t.test(weight~group, data = mydata1)
+
+
+#H0: grup ortalamaları eşittir.
+#H1: grup ortalamaları arasında en az biri diğerlerinden farklıdır.
+#Buradan hareketler p değerim alfadan küçük olduğundan H0 RED, grup ortalamaları arasında en az biri diğerlerinden farklıdır.
+t.test(weight~group, data = mydata1)
+t.test(weight~group, data = mydata2)
+t.test(weight~group, data = mydata3)
+
+#tek yönlü ANOVA
+anova(lm(weight~group, data = mydata))
+df = data.frame(Exam, Sex, Degree)
+
+
 
