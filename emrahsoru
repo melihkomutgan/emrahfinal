@@ -1,0 +1,40 @@
+####1.soru####
+z =  matrix(c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0), nrow=4, ncol=6, byrow=TRUE)
+for (i in 1:4) {
+  for (j in 1:6) {
+    z[i,j] = 2*i - 3*j
+  }
+}
+z
+
+
+###2. soru ###
+
+x <- as.double(readline(prompt = "Lütfen bir sayı giriniz: "))
+
+if(x > 1) {
+  print("Hesaplanamaz")
+} else if (x == 0){
+  print("Sonuç 1")
+} else if(x <= 1 && x >= 0){
+  y = sqrt(1-x^2)
+  y
+}
+
+
+
+#3. soru####
+
+quakes
+data:quakes 
+mydata=quakes 
+  mydata1=subset(quakes,depth==c("(0,200]"))
+  mydata2=subset(quakes,depth==c("[200,400)"))
+  mydata3=subset(quakes,depth==c("(400,680]"))
+  
+  
+  t.test(quakes~depth, data = mydata1)
+  
+  
+
+
