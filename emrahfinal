@@ -1,0 +1,277 @@
+head(cars)
+nrow()
+nrow(cars)
+scatter.smooth(x = cars$speed, y = cars$dist, main = "Dist-Speed")
+par(mfrow = c(1,2))
+
+boxplot(cars$speed, main = "Speed", sub = paste("Outlier rows: ", boxplot.stats(cars$speed)$out)) #outlier değerler
+
+boxplot.stats(cars$speed)$out  #outlier değerler 
+
+boxplot(cars$dist, main = "Dist", sub = paste("Outlier rows:", boxplot.stats(cars$dist)$out)) #distance değerleri 120 outlier
+#değer olarak görünür
+
+
+#Normal dağılım gösterip göstermediğini anlamak için: density function grafiklerini çizdirmemiz gerekmektedir
+# (yoğunluk fonksiyonlarının grafiklerini çizdirmemiz gerekir). 
+#Bunu görmek için yine grafikleri yan yana çizdirmek daha akıllıca bir hamle olacaktır. 
+#Bunun için tekrardan par() komutunu yazdırmak suretiyle bir pencerede iki adet grafik verecektir.
+par(mfrow=c(1,2))
+
+plot(density(cars$speed),
+     main = "Density Plot: Speed", 
+     ylab = "Frequency", 
+     sub = paste("Skewness:", 
+                 round(e1071::skewness(cars$speed), 2)))
+#main → grafiğin adı,
+#ylab → y eksenin adı,
+#sub → grafiğin altına, “speed” değişkeninin çarpıklık dağılımını hesaplamak için 
+round(e1071::skewness(cars$speed), 2)
+#Burada “e1071” paketinden çağırıyoruz: “cars$speed” için skewness gerçekleştiriyoruz. 
+#Ve burada “2” demek aslında yuvarla demektir; virgülden sonra 3-4 basamak varsa ikiye yuvarla demektir.
+
+polygon(density(cars$speed), col = "red")
+
+plot(density(cars$dist), 
+     main = "Density Plot: Distance", 
+     ylab = "Frequency", 
+     sub = paste("Skewness:", 
+                 round(e1071::skewness(cars$dist), 2)))
+
+cor(cars$speed, cars$dist)
+#0.8068949 speed ile distance arasında pozitif ve kuvvetli bir ilişki söz konusudur!
+
+linearMod = lm(dist~speed, data=cars)
+#Coefficients:
+#(Intercept)        speed  
+#-17.579        3.932  
+# sabit terim -17 hız değişkeni 3.93
+#doğrusal bir tahmin yapmak için kullanılır.
+print(linearMod)
+
+dist = -17.579 + 3.932  #doğrusal model budur.
+dist
+#-13.647
+
+modelSummary = summary(linearMod)
+modelSummary
+#Estimate → katsayıların tahminleri
+#Std. Error → katsayıların standart hataları
+#t-value → katsayıların t değerleri
+#Pr(>|t|) → t istatistiğinin olasılık değerleri
+#Adjusted R-squared: → düzeltilmiş R-kare değeri
+#F-statistic: → F istatistiği
+#p-value: → F istatistiğinin olasılık değeri
+
+Modelcoeffs = modelSummary$coefficients
+#sadece katsayı tahminlerinlerini verir
+
+beta.estimate = Modelcoeffs["speed", "Estimate"]
+beta.estimate
+#3.92 alfa= sabit terim beta=eğim katsayısı
+
+std.error = Modelcoeffs["speed", "Std. Error"]
+#0.41
+
+t.value = beta.estimate/std.error #buradan t istatistik değerini bulmuş oluyoruz
+t.value
+#9.46
+
+p_value = 2*pt(-abs(t.value), df=nrow(cars)-ncol(cars))
+p_value
+#1.489836e-12
+#bu test çift yönlü olduğu için “2*pt” diyoruz.
+
+ncol(cars)
+#speed ve distance
+
+p_value
+#eğim katsayımız yani “speed”in önündeki katsayı 3.923 istatistiksel olarak ANLAMLIDIR.
+
+hatalar = linearMod$residuals
+hatalar
+#hata terimlerini bulma
+
+hatakaretop = sum(linearMod$residuals^2)
+hatakaretop
+#11353.52 hata kareler toplamını verir
+
+modelstdhata = sqrt(hatakaretop/48)
+modelstdhata
+# 15.37959 model standart hatayı verir
+##R2, korelasyonun karesidir.
+y = cars$dist
+print(y)
+toplamdegiskenlik = ((y-mean(y))^2)
+toplamdegiskenlik
+#5932.0804 1765.6804
+#R2, korelasyonun karesidir.
+
+rkare = 1-(hatakaretop/toplamdegiskenlik)
+print(rkare)
+rkare
+cor(cars)
+
+summary(cars)$r.squared
+cor(cars)
+cor(cars)^2
+VectorRSq = function(cars) {cor(cars)^2}
+VectorRSq(cars)
+
+
+###############################FAKTORİYEL HESAPLAMA DÖNGÜYLE#############################
+
+number = as.integer(readline(prompt = "Lütfen bir sayı giriniz:"))
+factorial = 1
+
+if (number < 0) {
+  print("Negatif sayıların faktöriyeli hesaplanamazdır!")
+} else if (number == 0) {
+  print("0 sayısının faktöriyeli 1'dir.")
+} else {
+  for(i in 1:number){
+    factorial = factorial*i
+  }
+  print(paste("Girdiğiniz", number, "sayısının faktöriyeli", factorial, "sayısıdır."))
+}
+
+
+int <- as.integer(readline(prompt = "Please enter a number"))
+facto <- 1
+
+if (int < 0) {
+  print("Negative numbers are not allowed")
+} else if (int == 0) {
+  print("The factorial of 0 is 1")
+} else {
+  facto <- factorial(int)
+  print(facto)
+}
+
+
+
+
+
+#############################################################
+
+
+#Basitçe bir regresyon analizi görmüş olduk. 
+#Regresyon analizi nasıl yapılıyor? 
+#Model nasıl tahmin ediliyor? 
+#Katsayılar nasıl elde ediliyor? 
+#Oradaki t-istatistikleri nasıl hesaplanılıyor? 
+#Prob değeri nasıl hesaplanıyor? Veri seti ikiye nasıl bölünüyor 
+#[trainingData ve testData olarak]? trainingData’dan nasıl parametreler tahminleniyor ve 
+#testData ilişkin öngörümleme/tahmin yapıyoruz? 
+
+head(cars)
+linearMod = lm(dist~speed, data = cars)
+lm(formula = dist ~ speed, data = cars)
+linearMod
+summary(linearMod)
+
+#Burada hem katsayıların tahminleri hem standart hataları hem t-değerleri hem prob değerleri, 
+#R2 değeri ve f-istatistiği vs. hepsi mevcuttur.
+
+AIC(linearMod) #Akaike Bilgi Ölçütü (Akaike information criterion – AIC)
+#419.1569
+
+BIC(linearMod) #Bayesian information criterion – BIC
+# 424.8929
+
+set.seed(100)
+#(öngörümleme = geleceği tahmin etmek [out of sample forecasting]). 
+
+trainigRowIndex = sample(1:nrow(cars), 0.8*nrow(cars))
+trainigRowIndex
+trainingData = cars[trainigRowIndex,]
+trainingData
+testData = cars[-trainigRowIndex,]
+testData
+
+
+lmMod = lm(dist~speed, data = trainingData)
+lmMod
+#Coefficients:
+#(Intercept)        speed  
+#-20.237        4.135  
+
+
+distPred = predict(lmMod, testData)
+distPred
+testData
+
+
+#data.frame(cbind(actuals = dışarıda bıraktığımız 10 gözlemlik veri setindeki bağımlı değişkenler,
+#predicteds = bağımlı değişkenimizin tahmini))
+
+actual.preds = data.frame(cbind(actuals = testData$dist, predicteds = distPred))
+actual.preds
+
+cor(actual.preds)
+actual.preds
+#iki değişken arasında korelasyon incelenir ve yorumlanır
+
+#0.83 yani %83’lık bir ilişki söz konusudur. 
+#Gerçek değerler ile yapmış olduğumuz tahmin arasında %83’lık KUVVETLİ bir ilişki söz konusudur.
+
+
+#ANOVA (VARYANS ANALİZİ)
+
+head(PlantGrowth)
+levels(PlantGrowth$group)
+#"ctrl" "trt1" "trt2"
+
+set.seed(1234)
+dplyr::sample_n(PlantGrowth, 10)
+levels(PlantGrowth$group)
+
+#Bunları yazabilmek için öncelikle “dplyr” paketini indirip – aktive etmek gerekir!
+group_by(PlantGrowth, group)%>%
+
+summarise(count = n(), mean = mean(weight, na.rm=TRUE),
+                                   sd = sd(weight, na.rm=TRUE))
+
+
+#ggpubr install
+ggboxplot(PlantGrowth, x = "group", y = "weight", color = "group", palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+                     order = c("ctrl", "trt1", "trt2"), ylab = "Weight", xlab = "Treatment")
+
+#ANOVA
+res.aov = aov(weight~group, data = PlantGrowth)
+
+aov(formula = weight ~ group, data = PlantGrowth)
+
+summary(res.aov)
+
+TukeyHSD(res.aov)
+
+PlantGrowth
+
+hist(PlantGrowth$weight, xlab = "Weight Value", main = "Histogram")
+
+shapiro.test(PlantGrowth$weight)
+
+data:  PlantGrowth$weight
+mydata = PlantGrowth
+boxplot(weight~group, data = mydata, ylab = "Weight", names = c("ctrl", "trt1", "trt2"))
+
+mydata1 = subset(mydata, group == c("ctrl", "trt1"))
+mydata2 = subset(mydata, group == c("ctrl", "trt2"))
+mydata3 = subset(mydata, group == c("trt1", "trt2"))
+t.test(weight~group, data = mydata1)
+
+
+#H0: grup ortalamaları eşittir.
+#H1: grup ortalamaları arasında en az biri diğerlerinden farklıdır.
+#Buradan hareketler p değerim alfadan küçük olduğundan H0 RED, grup ortalamaları arasında en az biri diğerlerinden farklıdır.
+t.test(weight~group, data = mydata1)
+t.test(weight~group, data = mydata2)
+t.test(weight~group, data = mydata3)
+
+#tek yönlü ANOVA
+anova(lm(weight~group, data = mydata))
+df = data.frame(Exam, Sex, Degree)
+
+
+
